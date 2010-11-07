@@ -1,0 +1,176 @@
+Author: Pedro Vicente Fernandez
+
+Proyect structure
+==============================
+
+The proyect has the following file tree:
+
+|-- Makefile
+|-- src
+|   |-- DNSDatabase.cpp
+|   |-- DNSQuery.cpp
+|   |-- DNSRegister.cpp
+|   |-- DNSRequest.cpp
+|   |-- DNSResponse.cpp
+|   |-- DNSServer.cpp
+|   |-- FlatFile.cpp
+|   |-- HashTable.cpp
+|   |-- include
+|   |   |-- DNSDatabase.hpp
+|   |   |-- DNSDefine.hpp
+|   |   |-- DNSError.hpp
+|   |   |-- DNSHeader.hpp
+|   |   |-- DNSQuery.hpp
+|   |   |-- DNSRegister.hpp
+|   |   |-- DNSRequest.hpp
+|   |   |-- DNSResponse.hpp
+|   |   |-- DNSServer.hpp
+|   |   |-- FlatFile.hpp
+|   |   |-- HashTable.hpp
+|   |   |-- LogSystem.hpp
+|   |   |-- NonCopyable.hpp
+|   |   |-- String.hpp
+|   |   |-- StringList.hpp
+|   |   |-- Tokenizer.hpp
+|   |   `-- Utils.hpp
+|   |-- LogSystem.cpp
+|   |-- main.cpp
+|   |-- Makefile
+|   |-- String.cpp
+|   |-- StringList.cpp
+|   |-- Tokenizer.cpp
+|   `-- Utils.cpp
+`-- tests
+    |-- Main.hpp
+    |-- Makefile
+    |-- TSDNSDatabase.cpp
+    |-- TSDNSServer.cpp
+    |-- TSFlatFile.cpp
+    |-- TSHash.cpp
+    |-- TSString.cpp
+    |-- TSStringList.cpp
+    |-- TSTokenizer.cpp
+    `-- TSUtils.cpp
+
+
+To make the binary you only type 'make' in the shell and a binary name 'dns' is created in the
+base directory.
+
+The tests folder has a set of unitary tests for each class in the proyect. To make unitary tests
+is necessary libcppunit-dev package.
+
+Parameters:
+=============================================
+
+'dns' bynary accepts the following parameters:
+
+Usage:
+        -p      UDP port number
+        -h      Hosts file path
+
+Deafault values are:
+
+Port: 53
+File: /etc/hosts
+
+Application uses syslog to show error and warning messages and it can be consulted in /var/log/syslog.
+Error messages also are shown in stderr.
+
+Application exit with errors when cannot do bind over any configured interface in the system.
+Application needs root privileges when port is minor than 1024.
+
+DNS service is listening for each configured interface in the system.
+
+An error while is loading host file don't make that application exit.
+
+Program structure
+=============================
+We have the following requeriments, don't use of STL libraries and c++ templates.
+Classes are located in 2 namespaces:
+
+- namespace utils: utilities in the program
+	include/HashTable.hpp (HasTable of Strings Nodes)
+	include/LogSystem.hpp (SystemLog messages)
+	include/NonCopyable.hpp (Noncopyable objects interface)
+	include/String.hpp (String implementation with stl interface and deep copy)
+	include/StringList.hpp (String List implementation with stl interface)
+	include/Tokenizer.hpp (String tokenizer with concurrency support)
+	include/Utils.hpp (utility functions in the program)
+
+- namespace dns: contains the dns classes
+	DNSDatabase.hpp (Contains all dns registers in a hash table)
+	DNSDefine.hpp (Static definitions and enumerated types)
+	DNSError.hpp (Error codes)
+	DNSHeader.hpp (DNSHeader handler)
+	DNSQuery.hpp (dns query objects and parsing dns requests)
+	DNSRegister.hpp (Contains a dns register in database with all ips associated with a host)
+	DNSRequest.hpp (dns request abstraction)
+	DNSResponse.hpp (dns response abastraction)
+	DNSServer.hpp (instance of dns server)
+
+Functionality ends:
+Basic dns service, supporting single queries of A type. If the query is not supported and response code not supported is returned.
+
+- Support for IPV4 and A registers. The hosts file is loaded wlike names associated with ips and don't exists alias for names. Therefore CNAME response has not been implemented.
+
+- Support for A and ANY types. With other type response code not implemented is returned.
+
+- Support por single queries. For multiple queries a response code not implemented is returned.
+
+- If dns request has format errors a response code format error is returned.
+
+- Server doesn't support TCP protocol for large requests and recursion. 
+
+- If queried name is not in database, not found error is returned.
+
+- Single process and single thread application. To support multithread applications minimal changes are needed.
+
+- Host file reload is not supported.
+
+
+Documentation
+========================
+
+All header files contains doxygen documentation format.
+
+Soporte Multiplataforma
+============================
+Compiled with g++(4.4 and 4.1) in ubuntu 32 and 64 bits.
+
+Don't compiled in Solaris and HP-UX platform.
+
+Data Structure
+=======================
+Hash Table, due to simplicity and fast development.
+Hash with open dispersion (String Lists) nodes and case insensitive compares.
+
+Some hash string algorithms has been tested.
+
+RS Hash Function
+JS Hash Function
+PJW Hash Function
+ELF Hash Function
+BKDR Hash Function
+SDBM Hash Function
+DJB Hash Function
+DEK Hash Function
+AP Hash Function
+
+Hash string algorithm from boost library has been selected. Results are similar than AP, DEK, SDBM and complexity is minor.
+
+seed ^= tolower(str[i]) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+
+Load charge is 0.8, to make rehasing of all elements.
+
+Complexity search is O(1) if not collissions occurs.
+
+Future work
+==============================
+Support of CNAMES, Recursion, TCP protocol and IPV6.
+
+Multithread support: Concurrent server with preforked threads and pthread_conditions.
+
+Performance comparision with balanced binary tree (Red/Black Trees and AVL) who are most efficient in storage, with Bloom Filters (don't have false positives in search) with O(1) and the following AVL/RBT wiht O(log n).
+
+Performance comparision with patricia tries who has complexity search O(1) and are more efficient in storage.
+
